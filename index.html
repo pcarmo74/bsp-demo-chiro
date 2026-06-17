@@ -112,6 +112,7 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
 .hl-sb svg { width: 14px; height: 14px; fill: white; }
 .hl-pw { text-align: center; padding: 8px; font-size: 10px; color: var(--muted); border-top: 1px solid var(--border); }
 .hl-pw a { color: var(--green); text-decoration: none; }
+.hl-pw a { color: var(--green); text-decoration: none; }
 .hl-db { background: var(--green); color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-align: center; margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
 
 @media(max-width:768px){
@@ -136,7 +137,7 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
   "tools": [
     {
       "name": "get_clinic_info",
-      "description": "Returns full operating hours, address, phone numbers, and direct billing network parameters for the Calgary clinic.",
+      "description": "Returns full operating hours, physical location, phone number, and direct insurance billing networks for the Calgary clinic.",
       "parameters": {
         "type": "object",
         "properties": {}
@@ -144,17 +145,17 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
     },
     {
       "name": "check_availability",
-      "description": "Queries the database to check if a specific date and time slot is open for an adjustment, assessment, or rehab treatment.",
+      "description": "Queries the database to check if a specific calendar date and time slot is open for an adjustment, assessment, or therapy treatment.",
       "parameters": {
         "type": "object",
         "properties": {
           "date": {
             "type": "string",
-            "description": "Target date in standard YYYY-MM-DD format"
+            "description": "Target appointment date in standard YYYY-MM-DD format"
           },
           "time": {
             "type": "string",
-            "description": "Target time in 24-hour military format (e.g., 14:30 or 09:00)"
+            "description": "Target appointment time in 24-hour military format (e.g., 14:00 or 08:30)"
           }
         },
         "required": ["date", "time"]
@@ -166,8 +167,8 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
       "parameters": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "description": "Full name of the incoming patient" },
-          "phone": { "type": "string", "description": "Cell phone contact line" },
+          "name": { "type": "string", "description": "Full legal name of the incoming patient" },
+          "phone": { "type": "string", "description": "Mobile cell phone line for verification" },
           "date": { "type": "string", "description": "Appointment date in YYYY-MM-DD format" },
           "time": { "type": "string", "description": "Appointment time in HH:MM format" }
         },
@@ -176,6 +177,85 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
     }
   ]
 }
+</script>
+
+<script type="text/javascript">
+window.addEventListener('load', () => {
+  // Validate if browser standard extensions or DOM protocol nodes exist
+  if (typeof window.navigator.registerMcpProvider === 'function' || document.getElementById('webmcp-protocol')) {
+    console.log("🚀 WebMCP Agentic Layer Active on chiro.bizsolutionspartner.com");
+    
+    const mcpSchema = JSON.parse(document.getElementById('webmcp-protocol').textContent);
+
+    // Mock Database for Live Sandbox Demonstrations
+    const mockDatabase = {
+      clinic_hours: "Mon–Fri 7am–7pm · Sat 8am–2pm",
+      address: "456 Centre St NW, Calgary AB",
+      phone: "(403) 555-0247",
+      billing: "Direct billing activated for Alberta Blue Cross, Sun Life, Manulife, and Canada Life.",
+      available_slots: ["2026-06-20@09:00", "2026-06-20@11:30", "2026-06-20@14:00", "2026-06-22@10:15"]
+    };
+
+    // Tool Handlers mapping directly to JSON-RPC requests
+    const mcpToolHandlers = {
+      get_clinic_info: () => {
+        return {
+          status: "success",
+          data: {
+            name: mcpSchema.provider.name,
+            location: mockDatabase.address,
+            operating_hours: mockDatabase.clinic_hours,
+            phone_line: mockDatabase.phone,
+            insurance_networks: mockDatabase.billing
+          }
+        };
+      },
+
+      check_availability: (params) => {
+        const lookupString = `${params.date}@${params.time}`;
+        const isOpen = mockDatabase.available_slots.includes(lookupString);
+        
+        return {
+          status: "success",
+          date_requested: params.date,
+          time_requested: params.time,
+          is_available: isOpen,
+          message: isOpen 
+            ? `Yes, an adjustment slot is open at ${params.time} on ${params.date} with Dr. Webb.` 
+            : `Sorry, ${params.time} on ${params.date} is fully booked. Next open option is 2026-06-20 at 14:00.`
+        };
+      },
+
+      make_reservation: (params) => {
+        console.log("📥 [WebMCP Event] Machine-to-Machine Payload Received Securely:", params);
+        
+        return {
+          status: "confirmed",
+          booking_id: "BSP-CHIRO-" + Math.floor(100000 + Math.random() * 900000),
+          patient_registered: params.name,
+          appointment_confirmed: `${params.date} at ${params.time}`,
+          message: `Success! Appointment booked securely via WebMCP for ${params.name}. Confirmation text routed to ${params.phone}.`
+        };
+      }
+    };
+
+    // Extension Messaging Gateway Bridge Interceptor
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'WEBMCP_INSPECTOR_QUERY') {
+        const { toolName, parameters } = event.data;
+        if (mcpToolHandlers[toolName]) {
+          const result = mcpToolHandlers[toolName](parameters);
+          
+          window.postMessage({
+            type: 'WEBMCP_INSPECTOR_RESPONSE',
+            toolName: toolName,
+            payload: result
+          }, '*');
+        }
+      }
+    });
+  }
+});
 </script>
 
 </head>
