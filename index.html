@@ -124,6 +124,60 @@ footer { background: var(--green); padding: 44px 48px; color: rgba(255,255,255,0
   .hl-widget{bottom:16px;right:16px;width:300px;}
 }
 </style>
+
+<script type="application/json+mcp" id="webmcp-protocol">
+{
+  "mcpVersion": "2026.1.0",
+  "provider": {
+    "name": "Align Chiropractic",
+    "location": "Calgary, AB",
+    "type": "Sports & Wellness Clinic"
+  },
+  "tools": [
+    {
+      "name": "get_clinic_info",
+      "description": "Returns full operating hours, address, phone numbers, and direct billing network parameters for the Calgary clinic.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "check_availability",
+      "description": "Queries the database to check if a specific date and time slot is open for an adjustment, assessment, or rehab treatment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Target date in standard YYYY-MM-DD format"
+          },
+          "time": {
+            "type": "string",
+            "description": "Target time in 24-hour military format (e.g., 14:30 or 09:00)"
+          }
+        },
+        "required": ["date", "time"]
+      }
+    },
+    {
+      "name": "make_reservation",
+      "description": "Registers a confirmed chiropractic or therapy booking directly into the CRM database via automated backend hooks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Full name of the incoming patient" },
+          "phone": { "type": "string", "description": "Cell phone contact line" },
+          "date": { "type": "string", "description": "Appointment date in YYYY-MM-DD format" },
+          "time": { "type": "string", "description": "Appointment time in HH:MM format" }
+        },
+        "required": ["name", "phone", "date", "time"]
+      }
+    }
+  ]
+}
+</script>
+
 </head>
 <body>
 
